@@ -1,0 +1,164 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
+
+\newtheorem{definition}{Определение}
+\newtheorem{theorem}{Теорема}
+\newtheorem{lemma}{Лемма}
+
+\begin{document}
+
+\begin{center}
+    \Large \textbf{Проект по сложностям}
+\end{center}
+
+\begin{flushright}
+    \normalsize Бирюков Илья, 2 курс Б05-424
+\end{flushright}
+
+\vspace{1cm}
+
+\section*{Задача о минимальном k-разрезе}
+
+\subsection*{Обозначения}
+\begin{align*}
+\textbf{Min k-Cut} &:= \Big\{ \big(G = (V, E), w, C, k\big) \mid \exists \hat{E} \subset E \text{ стоимости} \le C, \\
+&\quad \text{что граф } (V, E \setminus \hat{E}) \text{ распадается на } \ge k \text{ компонент связности} \Big\} \\[6pt]
+\textbf{Min Balanced Cut} &:= \Big\{ \big(G = (V, E), B, w, C\big) \mid \exists \text{ множества вершин } V_1, V_2: V = V_1 \cup V_2; \\
+&\quad |V_1|, |V_2| \le B \text{ и сумма весов ребер между } V_1 \text{ и } V_2 \le C \Big\} \\[6pt]
+\textbf{Max Cut} &:= \Big\{ \big(G = (V, E), C\big) \mid \exists \text{ множество вершин } \hat{V}, \text{ что в графе } G \\
+&\quad \text{между } \hat{V} \text{ и } V \setminus \hat{V} \text{ хотя бы } C \text{ ребер} \Big\} \\[6pt]
+\textbf{NAE-3SAT} &:= \Big\{ \text{множество 3-КНФ, у которых существует набор,} \\
+&\quad \text{что в каждом дизъюнкте формулы встречается как 0, так и 1} \Big\}
+\end{align*}
+
+\subsection*{Договорённость}
+Для формальности будем считать $k \le |V|$ в $\textbf{Min k-Cut}$.
+
+\section*{Пункт a}
+
+\subsection*{Доказательство принадлежности NP}
+Предъявим сертификат $y$ и верификатор $V(x, y)$:
+\begin{itemize}
+    \item $y$ --- набор $\big( \hat{E}, \text{список вершин для каждой компоненты} \big)$ --- набор из $k + 1$ элемента.
+    \item $V(x, y)$:
+    \begin{enumerate}
+        \item Распаковывает $x, y$, где $x = (G, w, C)$.
+        \item Проверяет, что сумма весов в $\hat{E} \le C$.
+        \item Для каждой пары компонент проверяет, что между их вершинами нет ребер.
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection*{Почему корректно?}
+Корректность соответствия $l \in L \Leftrightarrow \exists y \; V(x, y) = 1$ понятна по построению.
+
+Оценка сложности: $|G| = \text{poly}(|V|)$. Нетрудно убедиться, что каждый шаг верификатора также выполняется за $\text{poly}(|V|)$:
+\begin{enumerate}
+    \item За $O(|G| + |E| + 1)$
+    \item За $O(|E|)$
+    \item За $O(k^2 \times |V|^2) \le O(|V|^4)$
+\end{enumerate}
+
+\subsection*{Доказательство принадлежности NPC}
+Докажем в три шага:
+\[
+\textbf{NAE-3SAT} \overset{(1)}{\le_p} \textbf{Max Cut} \overset{(2)}{\le_p} \textbf{Min Balanced Cut} \overset{(3)}{\le_p} \textbf{Min k-Cut}
+\]
+
+\textit{Примечание: NP-полнота $\textbf{NAE-3SAT}$ доказывалась на лекции.}
+
+\textit{P.S. Принадлежность NP задач Max Cut и Min Balanced Cut опустим для краткости (понятно, какие верификаторы и сертификаты нужны).}
+
+\subsubsection*{Шаг 1}
+Строим $f$: $x \in \textbf{NAE-3SAT} \Leftrightarrow f(x) \in \textbf{Max Cut}$.
+
+Пусть на вход поступила $\phi$. Пусть $(x_1, x_2, \dots, x_n)$ --- переменные, $(C_1, \dots, C_m)$ --- дизъюнкты. Тогда
+\begin{itemize}
+    \item $V = \{x_1, \neg x_1, x_2, \neg x_2, \dots, x_n, \neg x_n\}$
+    \item $E = E_1 \cup E_2$, где
+    \begin{itemize}
+        \item $E_1 = \{(x_i, \neg x_i) \mid \forall i \in \{1, 2, \dots, n\}\}$
+        \item $E_2 = \{\text{тройки ребер, соединяющие вершины из } C_i \mid \forall i \in \{1, 2, \dots, m\}\}$
+    \end{itemize}
+    \item $C = 2m + n$
+\end{itemize}
+
+\paragraph{Доказательство корректности:}
+
+\textbf{($\Rightarrow$)} Положим $\hat{V}$ --- истинные литералы из искомого набора, $V \setminus \hat{V}$ --- ложные.
+
+Так как в каждом треугольнике будут как истинные, так и ложные литералы, ровно 2 его ребра будут находиться между $\hat{V}$ и $V \setminus \hat{V}$.
+
+Также каждая пара $(x_i, \neg x_i)$ будет содержать ребро между $\hat{V}$ и $V \setminus \hat{V}$.
+
+Значит, всего ребер между $\hat{V}$ и $V \setminus \hat{V} \ge 2m + n = C$.
+
+\textbf{($\Leftarrow$)} Положим литералы $\hat{V}$ --- истинные, $V \setminus \hat{V}$ --- ложные. Докажем, что такое определение корректно и полученный набор --- искомый для $\phi$.
+
+Пойдем от противного. Пусть $\neg x_i$ и $x_i$ лежат в $\hat{V}$. Тогда всего ребер между $\hat{V}$ и $V \setminus \hat{V} \le n - 1 + 2m < C$, так как между половинами может быть не более 2 ребер от каждого треугольника и одного ребра из оставшихся пар $(x_i, \neg x_i)$ --- противоречие. Это доказывает корректность определения набора.
+
+Аналогично доказывается, что построенный набор --- искомый: если в какой-то тройке все литералы одинаковые, то она полностью лежит в $\hat{V}$ или $V \setminus \hat{V}$, а значит, ребер между $\hat{V}$ и $V \setminus \hat{V} \le 2(m - 1) + n < C$.
+
+Полиномиальность $f$ очевидна.
+
+\subsubsection*{Шаг 2}
+\textit{В этом абзаце шляпка ($\hat{\cdot}$) означает объект из Min Balanced Cut, без шляпки --- Max Cut.}
+
+Строим $f$:
+
+На вход поступил $G$ и $C$. Тогда
+\begin{itemize}
+    \item Пусть $|V| = n$
+    \item $\hat{G} = K_{2n}$ --- полная клика на $2n$ вершинах
+    \item $w(e) = \begin{cases}
+        1, & \text{если } e \in E \\
+        2, & \text{если } e \notin E \text{ (т.е. ребро было добавлено)}
+    \end{cases}$
+    \item $\hat{C} = 2n^2 - C$
+    \item $\hat{B} = n$
+\end{itemize}
+
+\paragraph{Доказательство корректности:}
+
+\textbf{($\Rightarrow$)} Рассмотрим разрез $(S, V \setminus S)$ из Max Cut. Распределим новые вершины по долям, дополнив их до размера $n$ (к первой добавим $n - |S|$, ко второй $n - |V \setminus S|$).
+
+Нетрудно убедиться, что величина разреза $\le 2n^2 - C = \hat{C}$.
+
+\textbf{($\Leftarrow$)} Рассмотрим две доли размера $n$: $V_1, V_2$. Если между ними разрез стоимости $\le \hat{C}$, то разрез в исходном графе $\ge 2n^2 - \hat{C} = C$, откуда $(V_1 \cap V, V_2 \cap V)$ --- искомое разбиение Max Cut.
+
+Полиномиальность $f$ следует из $|\hat{G}| \le 4 \cdot |G|$.
+
+\subsubsection*{Шаг 3}
+\textit{Min Balanced Cut --- частный случай Min k-Cut.}
+
+На вход поступили $G, C, B, w$. Тогда
+\begin{itemize}
+    \item $f = \text{id}$
+    \item $k = 2$
+\end{itemize}
+
+\textbf{($\Rightarrow$)} Разрез в Min Balanced Cut является искомым разрезом в Min 2-Cut.
+
+\textbf{($\Leftarrow$)} Разрез в Min 2-Cut является искомым разрезом для Min Balanced Cut (условие на $|V_{1,2}| \le B$ выполнено по определению $f$).
+
+\subsubsection*{Итог}
+Доказали $\textbf{Min k-Cut} \in \text{NPC}$.
+
+\section*{Пункты b и c}
+\textit{To be continued...}
+
+\subsection*{План}
+\begin{itemize}
+    \item Построить дерево Гомори-Ху \href{https://ru.wikipedia.org/wiki/Наименьший\_k-разрез}{(Википедия)} и взять $k$ самых «легких» ребер.
+    \item Доказать корректность алгоритма.
+    \item Реализовать алгоритм (предположительно, на Python).
+    \item Написать тесты и проверить работу алгоритма на разных типах графов \href{http://users.cecs.anu.edu.au/~bdm/data/graphs.html}{(данные для тестов)}.
+\end{itemize}
+
+\end{document}
