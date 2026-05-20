@@ -12,7 +12,7 @@
   * `alogrithm.py` - реализация алгоритма **EFFICIENT**
   * `tests.py` - тестирование алгоритма
     * `./tests` - данные для тестирования, взятые [отсюда](https://users.cecs.anu.edu.au/~bdm/data/graphs.html)
-  * `analysis.pdf` - вывод работы тестов + выводы о работе алгоритма на их основе    
+  * `analysis.pdf` - выводы о работе алгоритма на основе тестов (`tests_output.md`)    
 
 ## Запуск тестирования:
 <font size=3, color=red>**Дисклеймер**</font>
